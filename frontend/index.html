@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 履歷顧問 | Resume Consultant</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="ri-robot-2-line"></i> AI 履歷顧問</h2>
+            </div>
+            
+            <button id="new-session-btn" class="primary-btn">
+                <i class="ri-add-line"></i> 新增履歷諮詢
+            </button>
+
+            <div class="sessions-list" id="sessions-list">
+                <!-- Sessions will be dynamically inserted here -->
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="chat-area">
+            <!-- Header -->
+            <header class="chat-header">
+                <h3 id="current-session-title">請選擇或建立新的諮詢</h3>
+                <div class="header-actions">
+                    <button id="upload-btn" class="icon-btn" title="上傳履歷或JD檔案" disabled>
+                        <i class="ri-attachment-2"></i>
+                    </button>
+                    <!-- Hidden file input -->
+                    <input type="file" id="file-upload" accept=".pdf,.doc,.docx,image/*" style="display: none;">
+                </div>
+            </header>
+
+            <!-- Chat Messages -->
+            <div class="messages-container" id="messages-container">
+                <div class="welcome-screen">
+                    <i class="ri-file-text-line"></i>
+                    <h2>打造完美履歷</h2>
+                    <p>上傳您的履歷與職缺說明，AI 顧問將為您提供客製化修改建議。</p>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <textarea id="chat-input" placeholder="告訴我您想修改哪個部分..." rows="1" disabled></textarea>
+                    <button id="send-btn" class="send-btn" disabled>
+                        <i class="ri-send-plane-fill"></i>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for New Session -->
+    <div id="new-session-modal" class="modal">
+        <div class="modal-content glass-effect">
+            <div class="modal-header">
+                <h3>建立新諮詢專案</h3>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="session-title">目標職缺名稱 (例如: Google 前端工程師)</label>
+                    <input type="text" id="session-title" placeholder="請輸入職缺名稱">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="create-session-confirm" class="primary-btn">建立</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
