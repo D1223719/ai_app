@@ -54,6 +54,10 @@
 ### 4. 系統截圖（`screenshots/`）
 
 在 `screenshots/` 資料夾放入以下截圖：
+<img width="1917" height="863" alt="image" src="https://github.com/user-attachments/assets/88ec7811-631a-4911-ae7b-ad4c0bf8779e" />
+<img width="1917" height="894" alt="image" src="https://github.com/user-attachments/assets/8940772a-b7b1-44ab-bc7b-f106636bd8eb" />
+<img width="1919" height="969" alt="image" src="https://github.com/user-attachments/assets/25225a95-1d46-491d-bd13-63dfd8c1cffc" />
+<img width="1919" height="817" alt="image" src="https://github.com/user-attachments/assets/7036fcdb-e2b0-4df3-a228-73c26461a2d4" />
 
 - `chat.png`：聊天機器人主畫面，**需包含至少一輪完整的對話**
 - `history.png`：對話歷史或多 session 切換的畫面
