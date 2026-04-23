@@ -310,6 +310,59 @@ body {
     cursor: not-allowed;
 }
 
+.stop-btn {
+    color: #ef4444;
+    margin-left: 8px;
+    margin-bottom: 4px;
+    font-size: 1.5rem;
+}
+
+.stop-btn:hover:not(:disabled) {
+    color: #f87171;
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+.message-wrapper {
+    display: flex;
+    flex-direction: column;
+    max-width: 80%;
+}
+
+.message-wrapper.user {
+    align-self: flex-end;
+}
+
+.message-wrapper.assistant {
+    align-self: flex-start;
+}
+
+.message {
+    display: flex;
+    width: 100%;
+}
+
+.regenerate-btn {
+    align-self: flex-start;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    margin-left: 12px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.regenerate-btn:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
+}
+
 /* Modal styling */
 .modal {
     display: none;

@@ -11,6 +11,9 @@ const newSessionBtnEl = document.getElementById('new-session-btn');
 const uploadBtnEl = document.getElementById('upload-btn');
 const fileUploadEl = document.getElementById('file-upload');
 const currentSessionTitleEl = document.getElementById('current-session-title');
+const stopBtnEl = document.getElementById('stop-btn');
+
+let currentAbortController = null;
 
 // Modal Elements
 const modalEl = document.getElementById('new-session-modal');
@@ -96,6 +99,12 @@ chatInputEl.addEventListener('keydown', (e) => {
 
 sendBtnEl.addEventListener('click', sendMessage);
 
+stopBtnEl.addEventListener('click', () => {
+    if (currentAbortController) {
+        currentAbortController.abort();
+    }
+});
+
 // Functions
 async function loadSessions() {
     try {
@@ -153,6 +162,9 @@ async function loadMessages(sessionId) {
 }
 
 function appendMessage(msg) {
+    const wrapper = document.createElement('div');
+    wrapper.className = `message-wrapper ${msg.role}`;
+    
     const div = document.createElement('div');
     div.className = `message ${msg.role}`;
     
@@ -163,7 +175,49 @@ function appendMessage(msg) {
         div.innerHTML = `<div class="bubble">${content}</div>`;
     }
     
-    messagesContainerEl.appendChild(div);
+    wrapper.appendChild(div);
+
+    if (msg.role === 'assistant' && !wrapper.classList.contains('loading')) {
+        const regenBtn = document.createElement('button');
+        regenBtn.className = 'regenerate-btn';
+        regenBtn.innerHTML = '<i class="ri-refresh-line"></i> 重新生成';
+        regenBtn.onclick = () => regenerateLastMessage(wrapper);
+        wrapper.appendChild(regenBtn);
+    }
+    
+    messagesContainerEl.appendChild(wrapper);
+}
+
+async function regenerateLastMessage(wrapperEl) {
+    if (!currentSessionId) return;
+
+    wrapperEl.innerHTML = `<div class="message assistant"><div class="bubble"><i class="ri-loader-4-line ri-spin"></i> 重新生成中...</div></div>`;
+    
+    stopBtnEl.style.display = 'block';
+    currentAbortController = new AbortController();
+
+    try {
+        const res = await fetch(`${API_BASE}/sessions/${currentSessionId}/regenerate`, {
+            method: 'POST',
+            signal: currentAbortController.signal
+        });
+        const data = await res.json();
+        
+        messagesContainerEl.removeChild(wrapperEl);
+        appendMessage(data.assistant_message);
+        scrollToBottom();
+    } catch (err) {
+        if (err.name === 'AbortError') {
+            wrapperEl.innerHTML = `<div class="message system"><span>已中止生成。</span></div>`;
+        } else {
+            console.error('Regenerate error', err);
+            alert('重新生成失敗。');
+            messagesContainerEl.removeChild(wrapperEl);
+        }
+    } finally {
+        currentAbortController = null;
+        stopBtnEl.style.display = 'none';
+    }
 }
 
 async function sendMessage() {
@@ -173,21 +227,25 @@ async function sendMessage() {
     chatInputEl.value = '';
     chatInputEl.style.height = 'auto';
     sendBtnEl.disabled = true;
+    stopBtnEl.style.display = 'block';
     
     appendMessage({ role: 'user', content: text });
     scrollToBottom();
 
     const loadingDiv = document.createElement('div');
-    loadingDiv.className = 'message assistant loading';
-    loadingDiv.innerHTML = `<div class="bubble"><i class="ri-loader-4-line ri-spin"></i> 思考中...</div>`;
+    loadingDiv.className = 'message-wrapper assistant loading';
+    loadingDiv.innerHTML = `<div class="message assistant"><div class="bubble"><i class="ri-loader-4-line ri-spin"></i> 思考中...</div></div>`;
     messagesContainerEl.appendChild(loadingDiv);
     scrollToBottom();
+
+    currentAbortController = new AbortController();
 
     try {
         const res = await fetch(`${API_BASE}/sessions/${currentSessionId}/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ content: text })
+            body: JSON.stringify({ content: text }),
+            signal: currentAbortController.signal
         });
         const data = await res.json();
         
@@ -195,9 +253,17 @@ async function sendMessage() {
         appendMessage(data.assistant_message);
         scrollToBottom();
     } catch (err) {
-        console.error('Chat error', err);
         messagesContainerEl.removeChild(loadingDiv);
-        alert('發送訊息失敗，請稍後再試。');
+        if (err.name === 'AbortError') {
+            appendMessage({ role: 'system', content: '已中止生成。' });
+        } else {
+            console.error('Chat error', err);
+            alert('發送訊息失敗，請稍後再試。');
+        }
+    } finally {
+        currentAbortController = null;
+        stopBtnEl.style.display = 'none';
+        chatInputEl.focus();
     }
 }
 

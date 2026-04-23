@@ -83,6 +83,44 @@ def chat(session_id: str, req: ChatMessageRequest, db: Session = Depends(get_db)
 
     return {"user_message": user_msg, "assistant_message": ast_msg}
 
+@app.post("/api/sessions/{session_id}/regenerate")
+def regenerate_chat(session_id: str, db: Session = Depends(get_db)):
+    # 1. Find the last message
+    last_msg = db.query(models.Message).filter(models.Message.session_id == session_id).order_by(models.Message.created_at.desc()).first()
+    
+    if not last_msg:
+        raise HTTPException(status_code=400, detail="No messages to regenerate.")
+        
+    # 2. If it's an assistant message, delete it
+    if last_msg.role == "assistant":
+        db.delete(last_msg)
+        db.commit()
+        
+    # 3. Get history (which now doesn't include the deleted message, but includes the last user message)
+    history = db.query(models.Message).filter(models.Message.session_id == session_id).order_by(models.Message.created_at.asc()).all()
+    if not history or history[-1].role != "user":
+        # If there's no user message to respond to, we can't regenerate properly
+        raise HTTPException(status_code=400, detail="Can only regenerate after a user message.")
+        
+    history_dicts = [{"role": m.role, "content": m.content} for m in history]
+
+    try:
+        assistant_reply = llm.generate_chat_response(history_dicts)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    ast_msg = models.Message(session_id=session_id, role="assistant", content=assistant_reply)
+    db.add(ast_msg)
+    
+    # Update session modified time
+    session = db.query(models.Session).filter(models.Session.id == session_id).first()
+    if session:
+        session.updated_at = ast_msg.created_at
+    
+    db.commit()
+
+    return {"assistant_message": ast_msg}
+
 @app.post("/api/sessions/{session_id}/upload")
 def upload_file(session_id: str, file: UploadFile = File(...), file_type: str = Form(...), db: Session = Depends(get_db)):
     file_path = os.path.join(UPLOAD_DIR, file.filename)
